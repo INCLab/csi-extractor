@@ -1,24 +1,17 @@
 import pcap
 import dpkt
 import keyboard
-import pandas as pd
 import numpy as np
-import os
-import sys
-from datetime import datetime
-import time
+import cfg
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from multiprocessing import Process
 from matplotlib.artist import Artist
 
 #selected_mac = sys.argv[1]
 
-BANDWIDTH = 20
+BANDWIDTH = cfg.EXTRACTOR_CONFIG['bandwidth']
 
 # number of subcarrier
 NSUB = int(BANDWIDTH * 3.2)
-
 # : 제외
 selected_mac = 'dca6328e1dcb'
 show_packet_length = 100

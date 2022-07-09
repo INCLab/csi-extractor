@@ -1,3 +1,4 @@
-pip3 install pypcap
-pip3 install dpkt
-pip3 install pandas
+pypcap
+dpkt
+pandas
+matplotlib

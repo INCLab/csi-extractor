@@ -2,25 +2,27 @@
     Extract raw CSI data (complex number)
 '''
 
+import os
 import pcap
 import dpkt
 import keyboard
 import pandas as pd
 import numpy as np
-import os
-from datetime import datetime
-import time
+import cfg
 
+output_path = '../data'
+os.makedirs(output_path, exist_ok=True)
 
-BANDWIDTH = 20
+BANDWIDTH = cfg.EXTRACTOR_CONFIG['bandwidth']
 
 # number of subcarrier
 NSUB = int(BANDWIDTH * 3.2)
 
 
 # for sampling
+# n이 1일 경우 초당 10개, 2일 경우 초당 100개
 def truncate(num, n):
-    integer = int(num * (10**n))/(10**n)
+    integer = int(num * (10**n))/(10**n)  # n번째 소수자리 밑으로 다 지우기
     return float(integer)
 
 
@@ -37,20 +39,22 @@ def sniffing(nicname):
     before_ts = 0.0
 
     for ts, pkt in sniffer:
+        # 현재 timestamp와 이전 packet timestamp가 초단위까지 같은 경우
         if int(ts) == int(before_ts):
             cur_ts = truncate(ts, 1)
             bef_ts = truncate(before_ts, 1)
 
+            # 100ms 단위까지 같은경우 pass
+            # ms단위로 계속 packet을 받는다는 가정하에 100ms당 하나씩 받는 (1초당 10개 제한)
             if cur_ts == bef_ts:
                 before_ts = ts
                 continue
-
 
         eth = dpkt.ethernet.Ethernet(pkt)
         ip = eth.data
         udp = ip.data
 
-        # MAC Address 추출
+        # extract MAC address
         # UDP Payload에서 Four Magic Byte (0x11111111) 이후 6 Byte는 추출된 Mac Address 의미
         mac = udp.data[4:10].hex()
 
@@ -86,57 +90,28 @@ def sniffing(nicname):
 
         # Rename Subcarriers Column Name
         columns = {}
-        for i in range(0, 64):
+        for i in range(0, nsub):
             columns[i] = '_' + str(i)
 
         csi_df.rename(columns=columns, inplace=True)
 
-        # Save dataframe to SQL
+        # concatenate current CSI data to dataframe
         try:
             mac_dict[mac] = pd.concat([mac_dict[mac], csi_df], ignore_index=True)
         except Exception as e:
             print('Error', e)
 
+        # update before packet timestamp
         before_ts = ts
 
         if keyboard.is_pressed('s'):
             print("Stop Collecting...")
 
             for mac_address in mac_dict.keys():
-                mac_dict[mac_address].to_csv('csi_{}_{}MHz.csv'.format(mac_address, bandwidth), index=False)
+                csi_save_path = os.path.join(output_path, 'csi_{}_{}MHz.csv'.format(mac_address, bandwidth))
+                mac_dict[mac_address].to_csv(csi_save_path, index=False)
             break
-
-
-def ping(nicname):
-    print('Start Ping...')
-
-    # Get Gateway IP
-    gwipcmd = "ip route | grep -w 'default via.*dev " + nicname + "' | awk '{print $3}'"
-    gwip = os.popen(gwipcmd).read()
-
-    # Send Ping
-    while True:
-        # Request 5 Times, Ping from specified NIC to gateway
-        pingcmd = 'ping -q -c 5 -I ' + nicname + ' ' + gwip + ' 1> /dev/null'
-        os.system(pingcmd)
-
-        # Sleep
-        time.sleep(1)
 
 
 if __name__ == '__main__':
     sniffing('wlan0')
-    # CSI Extractor Interface
-    # csinicname = 'wlan1'
-    #
-    # # Ping dedicated interface
-    # pingnicname = 'wlan0'
-    #
-    # sniffing = Process(target=sniffing, args=(csinicname, ))
-    # ping = Process(target=ping, args=(pingnicname, ))
-    #
-    # sniffing.start()
-    # ping.start()
-    #
-    # sniffing.join()
-    # ping.join()
