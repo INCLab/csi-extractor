@@ -2,3 +2,4 @@ pypcap
 dpkt
 pandas
 matplotlib
+keyboard
