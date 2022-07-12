@@ -9,11 +9,13 @@ import keyboard
 import pandas as pd
 import numpy as np
 import cfg
+from math import log10
 
 output_path = '../data'
 os.makedirs(output_path, exist_ok=True)
 
 BANDWIDTH = cfg.EXTRACTOR_CONFIG['bandwidth']
+SAMPLE_RATE = int(log10(cfg.EXTRACTOR_CONFIG['SAMPLE']))
 
 # number of subcarrier
 NSUB = int(BANDWIDTH * 3.2)
@@ -41,8 +43,8 @@ def sniffing(nicname):
     for ts, pkt in sniffer:
         # 현재 timestamp와 이전 packet timestamp가 초단위까지 같은 경우
         if int(ts) == int(before_ts):
-            cur_ts = truncate(ts, 1)
-            bef_ts = truncate(before_ts, 1)
+            cur_ts = truncate(ts, SAMPLE_RATE)
+            bef_ts = truncate(before_ts, SAMPLE_RATE)
 
             # 100ms 단위까지 같은경우 pass
             # ms단위로 계속 packet을 받는다는 가정하에 100ms당 하나씩 받는 (1초당 10개 제한)

@@ -11,6 +11,9 @@ EXTRACTOR_CONFIG = {
     'use_TX_MAC': False,
     'TX_MAC': 'dca6328e1dcb',  # enter transmitter MAC address
 
+    # For Sampling num per second
+    'SAMPLE': 10,
+
     'null_20MHz': ['_' + str(x+32) for x in [-32, -31, -30, -29,
                                               31,  30,  29,  0]],
 

@@ -4,11 +4,12 @@ import keyboard
 import numpy as np
 import cfg
 import matplotlib.pyplot as plt
-from matplotlib.artist import Artist
+from math import log10
 
 #selected_mac = sys.argv[1]
 
 BANDWIDTH = cfg.EXTRACTOR_CONFIG['bandwidth']
+SAMPLE_RATE = int(log10(cfg.EXTRACTOR_CONFIG['SAMPLE']))
 
 # number of subcarrier
 NSUB = int(BANDWIDTH * 3.2)
@@ -63,8 +64,8 @@ def sniffing(nicname, mac_address):
 
     for ts, pkt in sniffer:
         if int(ts) == int(before_ts):
-            cur_ts = truncate(ts, 1)
-            bef_ts = truncate(before_ts, 1)
+            cur_ts = truncate(ts, SAMPLE_RATE)
+            bef_ts = truncate(before_ts, SAMPLE_RATE)
 
             if cur_ts == bef_ts:
                 before_ts = ts
