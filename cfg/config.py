@@ -7,6 +7,10 @@ EXTRACTOR_CONFIG = {
     'band': '2.4GHz',  # 5GHz
     'bandwidth': 20,  # 40, 80, 160 (MHz)
 
+    # 여러개의 TX로 부터 CSI를 추출하는 상황에서 특정 tramsmitter에 대해 real time plot을 사용할때
+    'use_TX_MAC': False,
+    'TX_MAC': 'dca6328e1dcb',  # enter transmitter MAC address
+
     'null_20MHz': ['_' + str(x+32) for x in [-32, -31, -30, -29,
                                               31,  30,  29,  0]],
 

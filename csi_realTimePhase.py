@@ -13,8 +13,7 @@ BANDWIDTH = cfg.EXTRACTOR_CONFIG['bandwidth']
 # number of subcarrier
 NSUB = int(BANDWIDTH * 3.2)
 
-# : 제외
-selected_mac = 'dca6328e1dcb'
+selected_mac = cfg.EXTRACTOR_CONFIG['TX_MAC']
 show_packet_length = 100
 GAP_PACKET_NUM = 20
 
@@ -49,15 +48,15 @@ def sniffing(nicname, mac_address):
         line, = ax.plot(x, y, alpha=0.5)
         line_list.append(line)
 
-    plt.title('{}'.format(selected_mac), fontsize=18)
+    if mac_address is None:
+        title = 'realTimePhase'
+    else:
+        title = mac_address
+
+    plt.title('{}'.format(title), fontsize=18)
     plt.ylabel('Signal Phase', fontsize=16)
     plt.xlabel('Packet', fontsize=16)
     plt.ylim(-300, 300)
-
-    # Amp Min-Max gap text on plot figure
-    txt = ax.text(60, 400, 'Amp Min-Max Gap: None', fontsize=14)
-    gap_count = 0
-    minmax = []
 
     idx = show_packet_length - 1
     # ####################################################
@@ -79,8 +78,9 @@ def sniffing(nicname, mac_address):
         # UDP Payload에서 Four Magic Byte (0x11111111) 이후 6 Byte는 추출된 Mac Address 의미
         mac = udp.data[4:10].hex()
 
-        if mac != mac_address:
-            continue
+        if mac_address is not None:
+            if mac != mac_address:
+                continue
 
 
         # Four Magic Byte + 6 Byte Mac Address + 2 Byte Sequence Number + 2 Byte Core and Spatial Stream Number + 2 Byte Chanspac + 2 Byte Chip Version 이후 CSI
@@ -116,30 +116,6 @@ def sniffing(nicname, mac_address):
             line_list[i].set_xdata(x)
             line_list[i].set_ydata(y)
 
-            # Min-Max Gap
-            if gap_count == 0:
-                minmax.append([new_y, new_y])
-            else:
-                # Update min
-                if minmax[i][0] > new_y:
-                    minmax[i][0] = new_y
-                # Update max
-                if minmax[i][1] < new_y:
-                    minmax[i][1] = new_y
-
-        gap_list = []
-        for mm in minmax:
-            gap_list.append(mm[1] - mm[0])
-
-        gap = max(gap_list)
-
-        Artist.remove(txt)
-        txt = ax.text(60, 400, 'Phase Min-Max Gap: {}'.format(gap), fontsize=14)
-        gap_count += 1
-        if gap_count == 20:
-            gap_count = 0
-            minmax = []
-
         fig.canvas.draw()
         fig.canvas.flush_events()
 
@@ -151,4 +127,7 @@ def sniffing(nicname, mac_address):
 
 
 if __name__ == '__main__':
-    sniffing('wlan0', selected_mac)
+    if cfg.EXTRACTOR_CONFIG['use_TX_MAC']:
+        sniffing('wlan0', selected_mac)
+    else:
+        sniffing('wlan0')

@@ -12,8 +12,8 @@ BANDWIDTH = cfg.EXTRACTOR_CONFIG['bandwidth']
 
 # number of subcarrier
 NSUB = int(BANDWIDTH * 3.2)
-# : 제외
-selected_mac = 'dca6328e1dcb'
+
+selected_mac = cfg.EXTRACTOR_CONFIG['TX_MAC']
 show_packet_length = 100
 GAP_PACKET_NUM = 20
 
@@ -24,7 +24,7 @@ def truncate(num, n):
     return float(integer)
 
 
-def sniffing(nicname, mac_address):
+def sniffing(nicname, mac_address=None):
     print('Start Sniifing... @', nicname, 'UDP, Port 5500')
     sniffer = pcap.pcap(name=nicname, promisc=True, immediate=True, timeout_ms=50)
     sniffer.setfilter('udp and port 5500')
@@ -48,7 +48,12 @@ def sniffing(nicname, mac_address):
         line, = ax.plot(x, y, alpha=0.5)
         line_list.append(line)
 
-    plt.title('{}'.format(selected_mac), fontsize=18)
+    if mac_address is None:
+        title = 'realTimeAmp'
+    else:
+        title = mac_address
+
+    plt.title('{}'.format(title), fontsize=18)
     plt.ylabel('Signal Amplitude', fontsize=16)
     plt.xlabel('Packet', fontsize=16)
     plt.ylim(0, 1500)
@@ -78,8 +83,9 @@ def sniffing(nicname, mac_address):
         # UDP Payload에서 Four Magic Byte (0x11111111) 이후 6 Byte는 추출된 Mac Address 의미
         mac = udp.data[4:10].hex()
 
-        if mac != mac_address:
-            continue
+        if mac_address is not None:
+            if mac != mac_address:
+                continue
 
 
         # Four Magic Byte + 6 Byte Mac Address + 2 Byte Sequence Number + 2 Byte Core and Spatial Stream Number + 2 Byte Chanspac + 2 Byte Chip Version 이후 CSI
@@ -150,4 +156,7 @@ def sniffing(nicname, mac_address):
 
 
 if __name__ == '__main__':
-    sniffing('wlan0', selected_mac)
+    if cfg.EXTRACTOR_CONFIG['use_TX_MAC']:
+        sniffing('wlan0', selected_mac)
+    else:
+        sniffing('wlan0')
