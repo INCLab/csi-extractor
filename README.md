@@ -2,7 +2,7 @@
 
 
 ## Before use
-* Based on the [Nexmon CSI Extractor](https://github.com/seemoo-lab/nexmon_csi)(Raspberry Pi, Wi-Fi chip: bcm43455c0), this repository functions to save Channel State Information (CSI) data as a csv file for each TX MAC address
+* Based on the [Nexmon CSI Extractor](https://github.com/seemoo-lab/nexmon_csi) (Raspberry Pi, Wi-Fi chip: bcm43455c0), this repository functions to save Channel State Information (CSI) data as a csv file for each TX MAC address
 * Therefore, you can use this repo after installing the Nexmon CSI Extractor firmware and activating the monitor mode
 
 
